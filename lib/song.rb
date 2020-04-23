@@ -2,28 +2,30 @@ require_relative "../config/environment.rb"
 require 'active_support/inflector'
 
 class Song
-
-
-  def self.table_name
-    self.to_s.downcase.pluralize
-  end
-
-  def self.column_names
-    DB[:conn].results_as_hash = true
-
-    sql = "pragma table_info('#{table_name}')"
-
-    table_info = DB[:conn].execute(sql)
-    column_names = []
-    table_info.each do |row|
-      column_names << row["name"]
-    end
-    column_names.compact
-  end
-
   self.column_names.each do |col_name|
     attr_accessor col_name.to_sym
   end
+  
+  def self.table_name
+    self.to_s.downcase.pluralize  #Changes Song to songs for use when creating table
+  end
+
+  def self.column_names
+    DB[:conn].results_as_hash = true  #this causes the values returned from the db to be in 
+    #a hash instead of an array, The keys will be the attribute names
+
+    sql = "pragma table_info('#{table_name}')" #SQL Statement to get an array of hashes describing the table
+
+    table_info = DB[:conn].execute(sql)
+    column_names = []   #This will be the name of each attribute
+    ##EX hash
+    #{"cid"=> 1, "name" => "album", "type" => "text",...}
+    table_info.each do |row|
+      column_names << row["name"] #column_names stores the attributes needed in the attr_accessor
+    end
+    column_names.compact #This gets rid of nil values in the array
+  end
+  
 
   def initialize(options={})
     options.each do |property, value|
